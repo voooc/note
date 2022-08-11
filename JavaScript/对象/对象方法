@@ -1,0 +1,176 @@
+# JavaScript对象方法
+
+## 构造对象
+
+#### Object.create()
+
+用于创建一个新对象，使用现有的对象来作为新创建对象的原型（prototype）
+
+语法：`Object.create(proto, propertiesObject)`
+
+参数：
+
+proto：新创建对象的原型对象
+
+propertiesObject：可选，如果该参数被指定且不为 undefined，则该传入对象的自有可枚举属性（即其自身定义的属性，而不是其原型链上的枚举属性）将为新创建的对象添加指定的属性值和对应的属性描述符
+
+```javascript
+const person = {
+  isHuman: false,
+  printIntroduction: function() {
+    console.log(`My name is ${this.name}. Am I human? ${this.isHuman}`);
+  }
+}
+const me = Object.create(person);
+me.name = 'Matthew'; // "name" is a property set on "me", but not on "person"
+me.isHuman = true; // inherited properties can be overwritten
+me.printIntroduction();
+// expected output: "My name is Matthew. Am I human? true"
+```
+
+#### Object.assign()
+
+Object.assign() 方法将所有可枚举（Object.propertyIsEnumerable()返回 true）和自有（Object.hasOwnProperty()返回 true）属性从一个或多个源对象复制到目标对象，返回修改后的对象
+
+```javascript
+const target = { a: 1, b: 2 };
+const source = { b: 4, c: 5 };
+const returnedTarget = Object.assign(target, source);
+console.log(target);
+// expected output: Object { a: 1, b: 4, c: 5 }
+console.log(returnedTarget);
+// expected output: Object { a: 1, b: 4, c: 5 }
+
+// 原型链上的属性和不可枚举属性不能被复制
+const obj = Object.create({ foo: 1 }, { // foo is on obj's prototype chain.
+  bar: {
+    value: 2  // bar is a non-enumerable property.
+  },
+  baz: {
+    value: 3,
+    enumerable: true  // baz is an own enumerable property.
+  }
+});
+
+const copy = Object.assign({}, obj);
+console.log(copy); // { baz: 3 }
+```
+
+## 对象检测
+
+#### in关键字
+
+该方法可以判断对象的自有属性和继承来的属性是否存在
+
+```javascript
+let user = {name: "leo"};
+"name" in user;            //true，自有属性存在
+"age"  in user;            //false
+"toString" in user;     //true，是一个继承属性
+```
+
+#### Object.prototype.hasOwnProperty()
+
+该方法只能判断自有属性是否存在，对于继承属性会返回 false
+
+```javascript
+const object1 = {};
+object1.property1 = 42;
+console.log(object1.hasOwnProperty('property1'));
+// expected output: true
+console.log(object1.hasOwnProperty('toString'));
+// expected output: false
+console.log(object1.hasOwnProperty('hasOwnProperty'));
+// expected output: false
+```
+
+#### Object.prototype.isPrototypeOf()
+
+用于测试一个对象是否存在于另一个对象的原型链上
+
+```javascript
+function Foo() {}
+function Bar() {}
+function Baz() {}
+Bar.prototype = Object.create(Foo.prototype);
+Baz.prototype = Object.create(Bar.prototype);
+var baz = new Baz();
+console.log(Baz.prototype.isPrototypeOf(baz)); // true
+console.log(Bar.prototype.isPrototypeOf(baz)); // true
+console.log(Foo.prototype.isPrototypeOf(baz)); // true
+console.log(Object.prototype.isPrototypeOf(baz)); // true
+```
+
+## 遍历对象
+
+#### Object.keys()
+
+返回一个数组，成员是参数对象自身的（不含继承的）所有可遍历属性的键名
+
+#### Object.values()
+
+返回一个数组，成员是参数对象自身的（不含继承的）所有可遍历属性的键值
+
+#### Object.entries()
+
+返回一个数组，成员是参数对象自身的（不含继承的）所有可遍历属性的键值对数组
+
+```javascript
+let user = { name: "leo", age: 18};
+Object.entries(user);
+// [["name","leo"],["age",18]]
+```
+
+#### Object.getOwnPropertyNames()
+
+返回一个由指定对象的所有自身属性的属性名（包括不可枚举属性但不包括 Symbol 值作为名称的属性）组成的数组
+
+```javascript
+let user = { name: "leo", age: 18};
+Object.getOwnPropertyNames(user);
+// ["name", "age"]
+
+var arr = ["a", "b", "c"];
+console.log(Object.getOwnPropertyNames(arr).sort()); // ["0", "1", "2", "length"]
+
+// 类数组对象
+var obj = { 0: "a", 1: "b", 2: "c"};
+console.log(Object.getOwnPropertyNames(obj).sort()); // ["0", "1", "2"]
+```
+
+## 对象属性配置
+
+#### Object.defineProperty()
+
+- writable — 如果为 true，则值可以被修改，否则它是只可读的。
+- enumerable— 如果为 true，则会被在循环中列出，否则不会被列出。
+- configurable — 如果为 true，则此属性可以被删除，这些特性也可以被修改，否则不可以
+
+```javascript
+let user = {
+  name: "John",
+};
+Object.defineProperty(user, "toString", {
+  enumerable: false
+})
+// 现在我们的 toString 消失了：
+for (let key in user) alert(key); // name
+```
+
+#### Object.defineProperties()
+
+直接在一个对象上定义新的属性或修改现有属性，并返回该对象
+
+```javascript
+var obj = {};
+Object.defineProperties(obj, {
+  'property1': {
+    value: true,
+    writable: true
+  },
+  'property2': {
+    value: 'Hello',
+    writable: false
+  }
+})
+```
